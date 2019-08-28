@@ -68,7 +68,7 @@ exports.getStudentList = functions.https.onRequest((req, res) => {
 
         const databaseRef = admin.database().ref(`Users`);
 
-        var i=1; //for excell sheet
+        var i=0; //for excell sheet
 
         databaseRef.once('value').then(function(snapshot)
         {
@@ -95,16 +95,14 @@ exports.getStudentList = functions.https.onRequest((req, res) => {
 
                             //value: data.length % 2 
                         });
-
-                       // worksheet.cell(i,1).string(`${id}`).style(style);
-                        //worksheet.cell(i,1).string(`${id}`).style(style);
                         i = i+1;
                     }
               });
  
           });
 
-
+        if(i>0)
+        {
 
           const attachment =[
             { // use URL as an attachment
@@ -118,58 +116,54 @@ exports.getStudentList = functions.https.onRequest((req, res) => {
                 filename: 'StudentList.csv',
                 //path: pdf
                 content: csv(data)
-            }
-        ];
+              }
+            ];
 
-        const mailOptions = {
-            from: 'SchwiftyCold <unresolved.shubham@gmail.com>', // Something like: Jane Doe <janedoe@gmail.com>
-            to: dest,
-            subject: `Students List for Mess Skip on ${day}-${month}-${year}`, // email subject
-            html: `
-            <html>
-            <head><title>Students List</title></head>
-            <body>
-            <p>This mail contains the list of students who want to skip mess on ${day}-${month}-${year}</p>
-            <p></p>
-            </body>
-            </html>`
-                , // email content in HTML
-            
-            attachments: attachment
-            
-        };
+            const mailOptions = {
+                from: 'SchwiftyCold <unresolved.shubham@gmail.com>', // Something like: Jane Doe <janedoe@gmail.com>
+                to: dest,
+                subject: `Students List for Mess Skip on ${day}-${month}-${year}`, // email subject
+                html: `
+                <html>
+                <head><title>Students List</title></head>
+                <body>
+                <p>This mail contains the list of students who want to skip mess on ${day}-${month}-${year}</p>
+                <p></p>
+                </body>
+                </html>`
+                    , // email content in HTML
+                
+                attachments: attachment
+                
+            };
 
-        // returning result
-        return transporter.sendMail(mailOptions, (erro, info) => {
-            
-            console.log('Mail Check : ',dest);
-            
-            if(erro){
-                return res.send(erro.toString());
-            }
-            return res.send('Sent');
-        });
+            // returning result
+            return transporter.sendMail(mailOptions, (erro, info) => {
+                
+                console.log('Mail Check : ',dest);
+                
+                if(erro){
+                    return res.send(erro.toString());
+                }
+                return res.send('Sent');
+            });
 
+        }
+        else
+        {
+            console.log('No Students Found ',`${i}`);
+            return res.send('Today is empty');
+        }
 
-
-    });
-
-        /*var destination = 'uploads/12345/full.xlsx';
-
-        bucket.upload(workbook, { destination: destination }, function(err, file) {
-            if (err) {
-                console.log(err);
-            }
-            else{console.log("uploaded");}
-        });*/
-
-        return res.send(`
+       /* return res.send(`
         <html>
         <head><title>Sent</title></head>
         <body>
         <p>The list of students has been emailed for
         ${day}-${month}-${year}</p>        
         </body>
-        </html>`);
+        </html>`);*/
+
+    });    
     });
 });
